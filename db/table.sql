@@ -1,0 +1,37 @@
+drop table if exists MIGTMPPAGAMORSIM;
+delimiter $$
+CREATE TABLE `MIGTMPPAGAMORSIM` (
+  `CreditoID` bigint unsigned NOT NULL,
+  `Consecutivo` int not NULL,
+  `Dias` int DEFAULT NULL,
+  `FecIni` date DEFAULT NULL,
+  `FecFin` date DEFAULT NULL,
+  `FecVig` date DEFAULT NULL,
+  `Capital` decimal(12,2) DEFAULT NULL,
+  `Interes` decimal(12,2) DEFAULT NULL,
+  `Iva` decimal(12,2) DEFAULT NULL,
+  `SubTotal` decimal(12,2) DEFAULT NULL,
+  `Insoluto` decimal(12,2) DEFAULT NULL,
+  `CapInt` char(1) DEFAULT NULL COMMENT 'Bandera para saber si se trata de un pago de\ncapital C\ninteres I\no ambos  G\n',
+  `CuotasCap` int DEFAULT NULL,
+  `CuotasInt` int DEFAULT NULL,
+  `NumTransaccion` bigint DEFAULT NULL,
+  `InteresAco` decimal(12,2) DEFAULT NULL COMMENT 'para llevar la suma del monto de interes ',
+  `FrecuPago` int DEFAULT NULL,
+  `Retencion` decimal(14,2) DEFAULT NULL,
+  `Cat` decimal(12,2) DEFAULT NULL,
+  `MontoSeguroCuota` decimal(12,2) DEFAULT NULL COMMENT 'Monto del seguro por cuota',
+  `IVASeguroCuota` decimal(12,2) DEFAULT NULL COMMENT 'Monto de Iva para el seguro por cuota',
+  `OtrasComisiones` decimal(12,2) DEFAULT '0.00' COMMENT 'Otras Comisiones',
+  `IVAOtrasComisiones` decimal(12,2) DEFAULT '0.00' COMMENT 'IVA Otras Comisiones',
+  `SalCapitalOriginal` decimal(16,2) DEFAULT '0.00' COMMENT 'Saldo Capital Original del Crédito Activo',
+  `SalInteresOriginal` decimal(16,2) DEFAULT '0.00' COMMENT 'Saldo Interés Original del Crédito Activo',
+  `SalMoraOriginal` decimal(16,2) DEFAULT '0.00' COMMENT 'Saldo Moratorio Original del Crédito Activo',
+  `SalComOriginal` decimal(16,2) DEFAULT '0.00' COMMENT 'Saldo Comisiones Original del Crédito Activo',
+  `InteresOtrasComisiones` decimal(12,2) DEFAULT '0.00' COMMENT 'Interes Otras Comisiones',
+  `IVAInteresOtrasComisiones` decimal(12,2) DEFAULT '0.00' COMMENT 'IVA Interes Otras Comisiones',
+  PRIMARY KEY (`CreditoID`,Consecutivo),
+  KEY `indexConsecutivo` (`Consecutivo`,`NumTransaccion`),
+  KEY `indexNumTransaccion` (`NumTransaccion`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Tabla para registro de Simulaciones';
+$$
