@@ -13,12 +13,20 @@ import time
 
 
 
-settings={'dbuser': 'app', 'dbname': 'microfin', 'dbpassword': 'Vostro1310', 'dbhost': 'localhost', 'dbport': '3308'}
+settings={'dbuser': 'root', 'dbname': 'microfinTS', 'dbpassword': 'Vostro1310', 'dbhost': 'localhost', 'dbport': '3308'}
 settings['program_name']='Migracion_SAFI'
 def task(requests):
     db=Connector(**settings)
-    result=db.get(requests)
-    return [result.data]
+   # print(requests.parameters)
+    default_error={'NUMERR':999,'ERRMEN':'OCURRIO UN ERROR'}
+    output=[]
+    try:
+        result=db.get(requests)
+    except Exception as e:
+        output.append(default_error)
+        return output
+    
+    return result.data
 
 def progress(n):
     n=n+1
@@ -38,13 +46,13 @@ def main():
     #print(settings)
 
     safi=Connector(**settings)
-    parameters=[1004,0]
-    lista_creditos=Request.Generic('MIGCREPAGCRELIST',parameters)
-    results=[]
+    parameters=['2022-12-31']
+    lista_creditos=Request.Generic('MIGT_CREDITOSLIST',parameters)
+    async_results=[]
     data=safi.get(lista_creditos)    
     
     filas=len(data.data)
-    print(data.data)
+    #print(data.data)
     print('Creditos por Procesar:' + str(len(data.data)))   
   
   
@@ -60,48 +68,32 @@ def main():
                     r=r+1
 
                                                                                        
-                request_list=Request.GenericBulk('simulador',data_block,repository.migracion).map(CreditoID='CreditoID',
-                                                                                                Monto='Monto',
-                                                                                                MontoCuota='MontoCuota',
-                                                                                                Tasa='Tasa',
-                                                                                                Frecu='Frecu',
-                                                                                                PagoCuota='PagoCuota',
-                                                                                                PagoFinalAni='PagoFinAni',
-                                                                                                DiaMes='DiaMesCap',
-                                                                                                FechaInicio='FechaInicio',
-                                                                                                NumeroCuotas='NumeroCuotas',
-                                                                                                ProdCredito='ProducCredito',
-                                                                                                ClienteID='ClienteID',
-                                                                                                DiaHabilSig='DiaHabilSig',
-                                                                                                AjustaFecAmo='AjustaFecAmo',
-                                                                                                AjusFecExiVen='AjusFecExiVen',
-                                                                                                ComAper='ComAper',
-                                                                                                MontoGL='MontoGL',
-                                                                                                CobraSeguroCuota='CobraSeguroCuota',
-                                                                                                CobraIVASeguroCuota='CobraIVASeguroCuota',
-                                                                                                MontoSeguroCupota='MontoSeguroCuota',
-                                                                                                ComAnualLin='ComAnualLin',
-                                                                                                FechaVenPrimAmo='NumTransaccion');
-
-
-                                                                                                
-
-                                                                                                
-                #request_list=Request.Bulk('deposito',data_block).map(CuentaAhoID='CuentaID', CantidadMov='Pago',Par_Fecha='FechaEmision',Par_FechaAplicacion='FechaEmision')
+                request_list=Request.GenericBulk('tabla_pagos',data_block,repository.migracion).map(CreditoID='CreditoID',FechaCorte='FechaCorte',Salida='Salida',NumTransaccion='NumTransaccion')
 
 
                 with Pool(NUM_THREADS) as pool:
                     n= n + len(request_list)
-                    results.append(pool.map_async(task, request_list,chunksize=5, callback=progress(n)))
+                    async_results.append(pool.map_async(task, request_list,chunksize=4, callback=progress(n)))
                     pool.close() # for async
                     pool.join() # for async 
             
-            for res in results:
-                 for r in res:
-                      print(r)
+            exitosos=0
+            fallidos=0
+            for res in async_results:
+                
+                block_results= res.get( timeout=60)
+                for result in block_results:
+                    code=result[0]['NUMERR']
+                    #print(result)
+                    if code>0 :
+                        fallidos+=1
+                    else:
+                        exitosos +=1
+     
+                          
             print('Registros:' + str(data.rowcount)) 
             print(f'Loops procesados: { item } ')
-            print(f'items procesados: { r } ')
+            print(f'items procesados: { r } ,  exitosos {exitosos }, fallidos { fallidos }')
             print(' \n.')
     
     fin=datetime.now()

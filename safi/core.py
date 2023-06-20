@@ -794,6 +794,7 @@ class Request():
 class Output():
     def __init__(self,db_output,request):
         self._data=''
+        self._rowcount=0
         if db_output:
             self._update(db_output,request)
 
