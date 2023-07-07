@@ -40,8 +40,8 @@ def main():
 
     print(f'Hora de inicio:{datetime.now()}')
     inicio=datetime.now()
-    POOL_SIZE=40
-    NUM_THREADS=8
+    POOL_SIZE=80
+    NUM_THREADS=12
     #settings=Utils.load_settings('pgss.settings')
     #print(settings)
 
@@ -83,6 +83,7 @@ def main():
                 
                 block_results= res.get( timeout=60)
                 for result in block_results:
+                    print(type(result))
                     code=result[0]['NUMERR']
                     #print(result)
                     if code>0 :
