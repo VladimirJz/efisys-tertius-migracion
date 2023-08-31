@@ -13,16 +13,19 @@ import time
 
 
 
-settings={'dbuser': 'root', 'dbname': 'microfinTS', 'dbpassword': 'Vostro1310', 'dbhost': 'localhost', 'dbport': '3308'}
+settings={'dbuser': 'vladimir', 'dbname': 'migracionTertius', 'dbpassword': 'v14dImlr.ImPl3.T5', 'dbhost': 'localhost', 'dbport': '3306'}
 settings['program_name']='Migracion_SAFI'
 def task(requests):
     db=Connector(**settings)
    # print(requests.parameters)
-    default_error={'NUMERR':999,'ERRMEN':'OCURRIO UN ERROR'}
+    default_error={f'NUMERR':999,'ERRMEN':f'OCURRIO UN ERROR : { requests.parameters[0]} '}
     output=[]
+    
     try:
         result=db.get(requests)
     except Exception as e:
+        print(f' call ',requests.routine,'-', requests.parameters)
+        print(e)
         output.append(default_error)
         return output
     
@@ -41,18 +44,18 @@ def main():
     print(f'Hora de inicio:{datetime.now()}')
     inicio=datetime.now()
     POOL_SIZE=80
-    NUM_THREADS=12
+    NUM_THREADS=16
     #settings=Utils.load_settings('pgss.settings')
     #print(settings)
 
     safi=Connector(**settings)
-    parameters=['2022-12-31']
+    parameters=['2023-07-31']
     lista_creditos=Request.Generic('MIGT_CREDITOSLIST',parameters)
     async_results=[]
     data=safi.get(lista_creditos)    
     
     filas=len(data.data)
-    #print(data.data)
+    #print(data.data)1
     print('Creditos por Procesar:' + str(len(data.data)))   
   
   
@@ -83,9 +86,11 @@ def main():
                 
                 block_results= res.get( timeout=60)
                 for result in block_results:
-                    print(type(result))
-                    code=result[0]['NUMERR']
+                    #print(type(result))
+                    
                     #print(result)
+                    #exit()
+                    code=result[0]['NUMERR']
                     if code>0 :
                         fallidos+=1
                     else:
